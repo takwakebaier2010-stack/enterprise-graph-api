@@ -146,11 +146,11 @@ requirements.txt
 
 | Member | Responsibility |
 |---|---|
-| [Name 1] | Backend Django & PostgreSQL |
-| [Name 2] | GraphQL & Strawberry |
-| [Name 3] | DataLoader & optimization |
-| [Name 4] | Security, tests & CI |
-| [Name 5 if any] | [Responsibility] |
+| [KEBAIER TAKWA ] | Backend Django & PostgreSQL |
+| [BEN HAMOUDA FATMA] | GraphQL & Strawberry |
+| [ALMIA NOUR] | DataLoader & optimization |
+| [FEKI AYA] | Security, tests & CI |
+| [HSSAN TASSNIM] | [Responsibility] |
 
 ## Running the tests
 
