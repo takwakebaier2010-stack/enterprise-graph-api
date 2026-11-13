@@ -29,6 +29,7 @@ The deepest query follows four levels: `organizers → events → reservations �
 - Django
 - Strawberry GraphQL + strawberry-graphql-django
 - PostgreSQL
+- Pipenv (`pip install --user pipenv`)
 
 ## Prerequisites
 
@@ -45,21 +46,20 @@ git clone [REPOSITORY_URL]
 cd [REPOSITORY_FOLDER]
 ```
 
-2. Create and activate a virtual environment
+2. Install pipenv
 
 ```bash
-python -m venv venv
-# Windows
-venv\Scripts\activate
-# macOS / Linux
-source venv/bin/activate
+pip install --user pipenv
 ```
 
-3. Install the dependencies
+3. Install the dependencies and open the virtual environment
 
 ```bash
-pip install -r requirements.txt
+pipenv install
+pipenv shell
 ```
+
+`pipenv install` reads `Pipfile.lock`, so everyone gets the same package versions. Run the next commands inside `pipenv shell` (or put `pipenv run` before each command).
 
 4. Create the PostgreSQL database
 
@@ -125,6 +125,8 @@ core/
   management/commands/
     seed_data.py         Test data generator
 manage.py
+Pipfile
+Pipfile.lock
 requirements.txt
 .env.example
 ```
