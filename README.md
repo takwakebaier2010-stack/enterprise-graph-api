@@ -148,9 +148,9 @@ requirements.txt
 |---|---|
 | [KEBAIER TAKWA ] | Backend Django & PostgreSQL |
 | [BEN HAMOUDA FATMA] | GraphQL & Strawberry |
-| [ALMIA NOUR ] | DataLoader & optimization |
-| [FEKI AYA ] | Security, tests & CI |
-| [HSSAN TASSNIM | [Responsibility] |
+| [ALMIA NOUR] | DataLoader & optimization |
+| [FEKI AYA] | Security, tests & CI |
+| [HSSAN TASSNIM] | [Responsibility] |
 
 ## Running the tests
 
