@@ -1,6 +1,8 @@
+
 import strawberry
 import strawberry_django
 from strawberry import auto
+from strawberry.extensions import QueryDepthLimiter, MaxAliasesLimiter
 
 from core import models
 
@@ -17,4 +19,10 @@ class Query:
     organizers: list[OrganizerType] = strawberry_django.field()
 
 
-schema = strawberry.Schema(query=Query)
+schema = strawberry.Schema(
+    query=Query,
+    extensions=[
+        QueryDepthLimiter(max_depth=5),
+        MaxAliasesLimiter(max_alias_count=10),
+    ],
+)
