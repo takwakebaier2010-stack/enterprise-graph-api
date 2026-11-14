@@ -25,14 +25,15 @@ The deepest query follows four levels: `organizers → events → reservations �
 
 ## Tech stack
 
-- Python 3.10+
+- Python 3.12+
 - Django
 - Strawberry GraphQL + strawberry-graphql-django
 - PostgreSQL
+- Pipenv (`pip install --user pipenv`)
 
 ## Prerequisites
 
-- Python 3.10 or higher
+- Python 3.12 or higher
 - PostgreSQL installed and running
 - Git
 
@@ -45,21 +46,20 @@ git clone [REPOSITORY_URL]
 cd [REPOSITORY_FOLDER]
 ```
 
-2. Create and activate a virtual environment
+2. Install pipenv
 
 ```bash
-python -m venv venv
-# Windows
-venv\Scripts\activate
-# macOS / Linux
-source venv/bin/activate
+pip install --user pipenv
 ```
 
-3. Install the dependencies
+3. Install the dependencies and open the virtual environment
 
 ```bash
-pip install -r requirements.txt
+pipenv install
+pipenv shell
 ```
+
+`pipenv install` reads `Pipfile.lock`, so everyone gets the same package versions. Run the next commands inside `pipenv shell` (or put `pipenv run` before each command).
 
 4. Create the PostgreSQL database
 
@@ -114,6 +114,35 @@ Example query:
   }
 }
 ```
+## N+1 optimization with DataLoader
+
+The project exposes two GraphQL endpoints so the N+1 problem can be measured:
+
+| Endpoint | Schema | Purpose |
+|---|---|---|
+| `/graphql/` | `core/schema.py` | Baseline (no optimization, N+1) |
+| `/graphql-optimized/` | `core/schema_optimized.py` | Async, read-only, uses DataLoader (`core/loaders.py`) |
+
+Measure the difference (same queries on both schemas, with a check that results are identical):
+
+```bash
+python manage.py seed_data --clear
+python manage.py measure_queries
+python manage.py measure_queries --preset nested4   # a single query
+```
+
+Results on the seed data (5 organizers, 50 events, 1000 reservations, 2018 tickets):
+
+| Query | SQL queries before | SQL queries after |
+|---|---|---|
+| `nested4` (organizers → events → reservations → tickets) | 1056 | 4 |
+| `events` (organizer, venue) | 101 | 3 |
+| `reservations` (event, participant, tickets) | 3001 | 4 |
+| `tickets` (reservation, event) | 4037 | 3 |
+
+Without DataLoader, the number of SQL queries grows with the data. With DataLoader, it stays constant: one query per level of the graph.
+
+Limits: the optimized schema is read-only (mutations stay on `/graphql/`) and the Relay `eventsPaginated` query is not optimized yet. Query counting needs `DEBUG=True`.
 
 ## Project structure
 
@@ -122,9 +151,14 @@ config/                  Django settings and URLs
 core/
   models.py              The 6 models
   schema.py              GraphQL schema (Strawberry)
+  schema_optimized.py    GraphQL schema with DataLoader (read-only)
+  loaders.py             DataLoader per relation
   management/commands/
     seed_data.py         Test data generator
+    measure_queries.py   Before/after SQL query counter
 manage.py
+Pipfile
+Pipfile.lock
 requirements.txt
 .env.example
 ```
@@ -134,8 +168,8 @@ requirements.txt
 - [x] PostgreSQL database with 6 related models
 - [x] Test data generator
 - [x] GraphQL endpoint with GraphiQL
-- [ ] [Queries, mutations, filters, pagination]
-- [ ] [DataLoader and N+1 optimization]
+- [x] [Queries, mutations, filters, pagination]
+- [x] [DataLoader and N+1 optimization]
 - [ ] [Query depth and alias limits]
 - [ ] [Automated tests and CI]
 - [ ] [AI GraphQL helper]
