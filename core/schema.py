@@ -22,7 +22,7 @@ class Query:
 schema = strawberry.Schema(
     query=Query,
     extensions=[
-        QueryDepthLimiter(max_depth=5),
-        MaxAliasesLimiter(max_alias_count=10),
+        lambda: QueryDepthLimiter(max_depth=5),
+        lambda: MaxAliasesLimiter(max_alias_count=10),
     ],
 )
