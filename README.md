@@ -136,8 +136,9 @@ requirements.txt
 - [x] GraphQL endpoint with GraphiQL
 - [ ] [Queries, mutations, filters, pagination]
 - [ ] [DataLoader and N+1 optimization]
-- [ ] [Query depth and alias limits]
-- [ ] [Automated tests and CI]
+- [x] GraphQL query depth and alias limits
+- [x] Automated security tests with Pytest
+- [x] GitHub Actions CI workflow
 - [ ] [AI GraphQL helper]
 
 (Each member updates the line of their own part.)
@@ -154,4 +155,15 @@ requirements.txt
 
 ## Running the tests
 
-[To be completed by the member in charge of tests.]
+Run the automated security tests with:
+
+```bash
+pipenv run pytest -v
+```
+
+The tests verify:
+- Deep GraphQL queries are blocked.
+- Queries with more than 10 aliases are blocked.
+- Normal GraphQL queries are accepted.
+
+GitHub Actions automatically runs the tests on every push and pull request.
