@@ -2,6 +2,7 @@ import strawberry
 import strawberry_django
 from strawberry import auto, relay
 from strawberry.types import Info
+from strawberry.extensions import QueryDepthLimiter, MaxAliasesLimiter
 
 from core import models
 
@@ -137,4 +138,11 @@ class Query:
         return [e async for e in qs.order_by(order_by)]
 
 
-schema_optimized = strawberry.Schema(query=Query)
+schema_optimized = strawberry.Schema(
+    query=Query,
+    extensions=[
+        strawberry_django.optimizer.DjangoOptimizerExtension,
+        lambda: QueryDepthLimiter(max_depth=5),
+        lambda: MaxAliasesLimiter(max_alias_count=10),
+    ],
+)
