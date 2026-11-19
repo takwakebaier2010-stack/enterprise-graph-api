@@ -1,9 +1,11 @@
+
 import strawberry
 import strawberry_django
-from strawberry import auto
-from strawberry import relay
-from datetime import datetime
 
+from strawberry import auto, relay
+from strawberry.extensions import QueryDepthLimiter, MaxAliasesLimiter
+
+from datetime import datetime
 from django.db.models import QuerySet
 from strawberry_django.relay import DjangoCursorConnection
 
@@ -69,7 +71,6 @@ class TicketType:
 @strawberry.type
 class Query:
 
-    # List queries
     organizers: list[OrganizerType] = strawberry_django.field()
     participants: list[ParticipantType] = strawberry_django.field()
     reservations: list[ReservationType] = strawberry_django.field()
@@ -87,19 +88,15 @@ class Query:
 
         queryset = models.Event.objects.all()
 
-        # Filter by title
         if title:
             queryset = queryset.filter(title__icontains=title.strip())
 
-        # Filter by organizer
         if organizer_id is not None:
             queryset = queryset.filter(organizer_id=organizer_id)
 
-        # Filter by venue
         if venue_id is not None:
             queryset = queryset.filter(venue_id=venue_id)
 
-        # Validate ordering field
         allowed_ordering = [
             "title", "-title",
             "starts_at", "-starts_at"
@@ -109,8 +106,6 @@ class Query:
             raise ValueError("Invalid ordering field")
 
         return list(queryset.order_by(order_by))
-
-    # Detail queries using Django integer IDs
 
     @strawberry.field
     def organizer(self, id: int) -> OrganizerType | None:
@@ -136,7 +131,7 @@ class Query:
     def venue(self, id: int) -> VenueType | None:
         return models.Venue.objects.filter(pk=id).first()
 
-    # Relay cursor pagination
+    # RELAY CURSOR PAGINATION
 
     @strawberry_django.connection(
         DjangoCursorConnection[EventType]
@@ -167,16 +162,12 @@ class ReservationInput:
 @strawberry.type
 class Mutation:
 
-    # Create Event
-
     @strawberry.mutation
     def create_event(self, input: EventInput) -> EventType:
 
-        # Validate title
         if not input.title.strip():
             raise ValueError("Event title cannot be empty")
 
-        # Check organizer
         organizer = models.Organizer.objects.filter(
             pk=input.organizer_id
         ).first()
@@ -184,7 +175,6 @@ class Mutation:
         if organizer is None:
             raise ValueError("Organizer not found")
 
-        # Check venue
         venue = models.Venue.objects.filter(
             pk=input.venue_id
         ).first()
@@ -199,15 +189,12 @@ class Mutation:
             venue=venue
         )
 
-    # Create Reservation
-
     @strawberry.mutation
     def create_reservation(
         self,
         input: ReservationInput
     ) -> ReservationType:
 
-        # Check event
         event = models.Event.objects.filter(
             pk=input.event_id
         ).first()
@@ -215,7 +202,6 @@ class Mutation:
         if event is None:
             raise ValueError("Event not found")
 
-        # Check participant
         participant = models.Participant.objects.filter(
             pk=input.participant_id
         ).first()
@@ -223,7 +209,6 @@ class Mutation:
         if participant is None:
             raise ValueError("Participant not found")
 
-        # Normalize and validate status
         status = input.status
 
         if status is None:
@@ -239,10 +224,15 @@ class Mutation:
             participant=participant,
             status=status
         )
-    
+
+
 # GRAPHQL SCHEMA
 
 schema = strawberry.Schema(
     query=Query,
-    mutation=Mutation
+    mutation=Mutation,
+    extensions=[
+        lambda: QueryDepthLimiter(max_depth=5),
+        lambda: MaxAliasesLimiter(max_alias_count=10),
+    ],
 )
