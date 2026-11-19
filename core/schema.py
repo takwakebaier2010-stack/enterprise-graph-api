@@ -1,4 +1,3 @@
-
 import strawberry
 import strawberry_django
 from strawberry import auto
@@ -18,6 +17,7 @@ class OrganizerType:
     id: auto
     name: auto
     country: auto
+    events: list["EventType"]
 
 
 @strawberry_django.type(models.Venue)
@@ -42,6 +42,7 @@ class EventType(relay.Node):
     starts_at: auto
     organizer: "OrganizerType"
     venue: "VenueType"
+    reservations: list["ReservationType"]
 
 
 @strawberry_django.type(models.Reservation)
