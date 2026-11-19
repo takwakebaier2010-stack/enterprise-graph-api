@@ -75,4 +75,14 @@ def test_max_aliases_limiter_blocks_too_many_aliases():
     """
 
     result = schema.execute_sync(query)
-    assert result.errors is not None
+    assert result.errors is not None 
+def test_normal_query_is_allowed():
+    query = """
+    {
+        __typename
+    }
+    """
+
+    result = schema.execute_sync(query)
+
+    assert result.errors is None
