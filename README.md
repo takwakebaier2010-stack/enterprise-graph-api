@@ -139,7 +139,7 @@ requirements.txt
 - [x] GraphQL query depth and alias limits
 - [x] Automated security tests with Pytest
 - [x] GitHub Actions CI workflow
-- [ ] [AI GraphQL helper]
+- [x] AI GraphQL helper (natural language to validated GraphQL queries)
 
 (Each member updates the line of their own part.)
 
@@ -151,7 +151,7 @@ requirements.txt
 | [BEN HAMOUDA FATMA] | GraphQL & Strawberry |
 | [ALMIA NOUR] | DataLoader & optimization |
 | [FEKI AYA] | Security, tests & CI |
-| [HSSAN TASSNIM] | [Responsibility] |
+| [HSSAN TASSNIM] | AI GraphQL helper, query validation, README and demo |
 
 ## Running the tests
 
@@ -167,3 +167,73 @@ The tests verify:
 - Normal GraphQL queries are accepted.
 
 GitHub Actions automatically runs the tests on every push and pull request.
+
+## AI GraphQL helper
+
+A command-line assistant that turns a question in natural language into a GraphQL query and **validates it against the schema before it is used**. If the query is invalid, the errors are sent back to the model, which corrects itself (up to 3 attempts).
+
+The validation has three layers:
+
+1. **Syntax and schema**: every type, field and argument must exist in the schema (`graphql-core`).
+2. **Depth limit**: maximum depth of 5, the same as `QueryDepthLimiter` in `core/schema_optimized.py`.
+3. **Alias limit**: maximum 10 aliases, the same as `MaxAliasesLimiter`.
+
+### Setup
+
+```bash
+pip install graphql-core requests anthropic python-dotenv
+```
+
+Add your Anthropic API key to `.env` (never commit it). Use `>>` so the database lines stay:
+
+```bash
+echo "ANTHROPIC_API_KEY=your_key_here" >> .env
+```
+
+Export the schema (needed for offline validation):
+
+```bash
+python tools/export_schema.py > schema.graphql
+```
+
+### Usage
+
+Generate a validated query from a question:
+
+```bash
+python tools/ai_graphql_helper.py --schema-file schema.graphql --ask "List the 5 latest events with their venue name and organizer name"
+```
+
+Generate and execute it on the running server (default: `http://localhost:8000/graphql-optimized/`):
+
+```bash
+python tools/ai_graphql_helper.py --ask "Show each organizer with their events" --run
+```
+
+Validate saved queries (exit code 1 if one is invalid, so CI can use it):
+
+```bash
+python tools/ai_graphql_helper.py --schema-file schema.graphql --validate-dir queries
+```
+
+Without `--schema-file`, the schema is loaded by live introspection. Set `GRAPHQL_URL` to use another endpoint, for example the naive one (`/graphql/`).
+
+### Example queries
+
+| File | Purpose | Expected |
+|---|---|---|
+| `queries/events_deep.graphql` | 4-level nested query | valid |
+| `queries/events_filtered.graphql` | filters and ordering | valid |
+| `queries/tickets_checkin.graphql` | tickets with participant | valid |
+| `queries/bad_field.graphql` | non-existent fields (`date`, `location`) | rejected |
+
+### Screenshots and demo
+
+Screenshots are in `docs/screenshots/`. Demo video: [add the link here]
+
+### Limits
+
+- The validation checks the **structure** of a query, not business rules. For example, `orderBy` is a plain `String` in the schema, but the resolver only accepts `starts_at`, `-starts_at`, `title` and `-title`. These values are given to the model in the prompt, and `--run` shows runtime errors.
+- A valid query is not always a relevant one: check the result against your question.
+- The model cannot produce data that the schema does not expose (for example, computed counts).
+- The API key must stay in `.env`, which is ignored by Git.
