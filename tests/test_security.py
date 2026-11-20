@@ -1,7 +1,10 @@
 
+import asyncio
+
 import strawberry
 from strawberry.extensions import QueryDepthLimiter
 from core.schema import schema
+from core.schema_optimized import schema_optimized
 
 
 @strawberry.type
@@ -86,3 +89,42 @@ def test_normal_query_is_allowed():
     result = schema.execute_sync(query)
 
     assert result.errors is None
+
+
+def test_optimized_schema_blocks_queries_over_depth_limit():
+    query = """
+    {
+        organizers {
+            events {
+                organizer {
+                    events {
+                        organizer {
+                            events {
+                                organizer { name }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    """
+
+    result = asyncio.run(
+        schema_optimized.execute(query, context_value={"loaders": {}})
+    )
+
+    assert result.errors is not None
+    assert "exceeds maximum operation depth" in result.errors[0].message
+
+
+def test_optimized_schema_blocks_more_than_ten_aliases():
+    aliases = "\n".join(f"alias{i}: __typename" for i in range(11))
+    result = asyncio.run(
+        schema_optimized.execute(
+            "{\n" + aliases + "\n}", context_value={"loaders": {}}
+        )
+    )
+
+    assert result.errors is not None
+    assert "aliases found. Allowed: 10" in result.errors[0].message

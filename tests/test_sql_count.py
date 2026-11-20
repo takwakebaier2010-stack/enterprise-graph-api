@@ -127,3 +127,76 @@ def test_dataloader_and_naive_return_identical_results(sql_counter):
         return x
 
     assert canon(naive_data) == canon(optimized_data)
+
+
+@pytest.mark.django_db(transaction=True)
+def test_optimized_schema_supports_relay_event_pagination():
+    build_dataset(1, 3, 0, 0)
+
+    async def execute(query):
+        try:
+            return await schema_optimized.execute(
+                query, context_value={"loaders": make_loaders()}
+            )
+        finally:
+            await sync_to_async(connections.close_all)()
+
+    first_page = asyncio.run(execute("""
+        { eventsPaginated(first: 2) {
+            edges { cursor node { title } }
+            pageInfo { hasNextPage endCursor }
+        } }
+    """))
+    assert first_page.errors is None, first_page.errors
+    page = first_page.data["eventsPaginated"]
+    assert len(page["edges"]) == 2
+    assert page["pageInfo"]["hasNextPage"] is True
+
+    second_page = asyncio.run(execute(f"""
+        {{ eventsPaginated(first: 2, after: "{page['pageInfo']['endCursor']}") {{
+            edges {{ node {{ title }} }}
+            pageInfo {{ hasNextPage }}
+        }} }}
+    """))
+    assert second_page.errors is None, second_page.errors
+    next_page = second_page.data["eventsPaginated"]
+    assert len(next_page["edges"]) == 1
+    assert next_page["pageInfo"]["hasNextPage"] is False
+
+
+@pytest.mark.django_db(transaction=True)
+def test_optimized_schema_supports_event_and_reservation_mutations():
+    build_dataset(1, 0, 0, 0)
+    organizer = models.Organizer.objects.first()
+    venue = models.Venue.objects.first()
+    participant = models.Participant.objects.first()
+
+    async def execute(query):
+        try:
+            return await schema_optimized.execute(
+                query, context_value={"loaders": make_loaders()}
+            )
+        finally:
+            await sync_to_async(connections.close_all)()
+
+    create_event = asyncio.run(execute(f'''
+        mutation {{ createEvent(input: {{
+            title: "  Created through optimized schema  "
+            startsAt: "2026-11-20T12:00:00+00:00"
+            organizerId: {organizer.pk}
+            venueId: {venue.pk}
+        }}) {{ id title }} }}
+    '''))
+    assert create_event.errors is None, create_event.errors
+    event = create_event.data["createEvent"]
+    assert event["title"] == "Created through optimized schema"
+    event_model = models.Event.objects.get(title=event["title"])
+
+    create_reservation = asyncio.run(execute(f'''
+        mutation {{ createReservation(input: {{
+            eventId: {event_model.pk}
+            participantId: {participant.pk}
+        }}) {{ status }} }}
+    '''))
+    assert create_reservation.errors is None, create_reservation.errors
+    assert create_reservation.data["createReservation"]["status"] == "pending"

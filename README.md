@@ -131,17 +131,22 @@ requirements.txt
 
 ## Features
 
-- [x] PostgreSQL database with 6 related models
-- [x] Test data generator
-- [x] GraphQL endpoint with GraphiQL
-- [ ] [Queries, mutations, filters, pagination]
-- [ ] [DataLoader and N+1 optimization]
-- [x] GraphQL query depth and alias limits
-- [x] Automated security tests with Pytest
-- [x] GitHub Actions CI workflow
-- [ ] [AI GraphQL helper]
+- [x] PostgreSQL database with six related event and ticketing models
+- [x] Reproducible test data generator
+- [x] Standard and optimized GraphQL endpoints with GraphiQL
+- [x] Event and reservation queries, event filters and ordering, and create mutations
+- [x] Relay cursor pagination for events on both schemas
+- [x] Request-scoped DataLoaders and Django ORM optimizer on the optimized schema
+- [x] Event and reservation create mutations on both schemas
+- [x] Query depth and alias limits on both schemas
+- [x] Pytest coverage for security limits and DataLoader SQL query counts
+- [x] GitHub Actions workflow for migrations and tests
 
-(Each member updates the line of their own part.)
+The application uses an events and ticketing domain to demonstrate nested GraphQL
+queries and N+1 optimization. The four-level query is
+`organizers → events → reservations → tickets`. The optimized schema exposes
+DataLoader-backed nested queries, event and reservation creation mutations, and
+Relay cursor pagination for events.
 
 ## Team
 
@@ -155,15 +160,16 @@ requirements.txt
 
 ## Running the tests
 
-Run the automated security tests with:
+Run the automated security and SQL query-count tests with:
 
 ```bash
 pipenv run pytest -v
 ```
 
 The tests verify:
-- Deep GraphQL queries are blocked.
-- Queries with more than 10 aliases are blocked.
-- Normal GraphQL queries are accepted.
+- Deep GraphQL queries and queries with more than 10 aliases are blocked.
+- A normal GraphQL query is accepted.
+- The four-level DataLoader query uses a constant four SQL queries as the dataset grows.
+- The naive schema exhibits the expected N+1 query count and both schemas return equivalent data.
 
 GitHub Actions automatically runs the tests on every push and pull request.
