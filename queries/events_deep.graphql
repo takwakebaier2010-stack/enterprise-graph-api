@@ -1,0 +1,12 @@
+query {
+  organizers {
+    name
+    events {
+      title
+      reservations {
+        status
+        tickets { seat price }
+      }
+    }
+  }
+}

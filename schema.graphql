@@ -1,0 +1,67 @@
+"""Date with time (isoformat)"""
+scalar DateTime
+
+"""Decimal (fixed-point)"""
+scalar Decimal
+
+type EventType implements Node {
+  """The Globally Unique ID of this object"""
+  id: ID!
+  title: String!
+  startsAt: DateTime!
+  organizer: OrganizerType!
+  venue: VenueType!
+  reservations: [ReservationType!]!
+}
+
+"""An object with a Globally Unique ID"""
+interface Node {
+  """The Globally Unique ID of this object"""
+  id: ID!
+}
+
+type OrganizerType {
+  id: ID!
+  name: String!
+  country: String!
+  events: [EventType!]!
+}
+
+type ParticipantType {
+  id: ID!
+  fullName: String!
+  email: String!
+}
+
+type Query {
+  organizers: [OrganizerType!]!
+  participants: [ParticipantType!]!
+  venues: [VenueType!]!
+  reservations: [ReservationType!]!
+  tickets: [TicketType!]!
+  events(title: String = null, organizerId: Int = null, venueId: Int = null, orderBy: String! = "starts_at"): [EventType!]!
+}
+
+type ReservationType {
+  id: ID!
+  status: String!
+  createdAt: DateTime!
+  event: EventType!
+  participant: ParticipantType!
+  tickets: [TicketType!]!
+}
+
+type TicketType {
+  id: ID!
+  seat: String!
+  price: Decimal!
+  checkedIn: Boolean!
+  reservation: ReservationType!
+}
+
+type VenueType {
+  id: ID!
+  name: String!
+  city: String!
+  capacity: Int!
+}

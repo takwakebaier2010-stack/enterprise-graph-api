@@ -1,0 +1,8 @@
+query {
+  events(title: "conf", orderBy: "-starts_at") {
+    title
+    startsAt
+    venue { name city capacity }
+    organizer { name country }
+  }
+}
