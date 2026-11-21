@@ -84,8 +84,7 @@ def clean(text):
 
 
 def generate(schema, question, retries=3):
-    import anthropic
-    client = anthropic.Anthropic()  # reads ANTHROPIC_API_KEY
+    from llm import ask_llm
     sdl, feedback = print_schema(schema), ""
     system = (
         "You write exactly ONE GraphQL query. No markdown, no explanation.\n"
@@ -96,10 +95,7 @@ def generate(schema, question, retries=3):
     )
     errors = []
     for attempt in range(1, retries + 1):
-        msg = client.messages.create(
-            model=os.getenv("CLAUDE_MODEL", "claude-sonnet-5-5"), max_tokens=1000,
-            system=system, messages=[{"role": "user", "content": question + feedback}])
-        q = clean(msg.content[0].text)
+        q = clean(ask_llm(system, question + feedback))
         errors = check(schema, q)
         print(f"[attempt {attempt}] {'VALID' if not errors else 'INVALID'}", file=sys.stderr)
         for e in errors:
