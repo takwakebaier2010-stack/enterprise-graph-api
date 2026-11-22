@@ -3,6 +3,9 @@ import strawberry_django
 from strawberry import auto, relay
 from strawberry.types import Info
 from strawberry.extensions import QueryDepthLimiter, MaxAliasesLimiter
+from datetime import datetime
+from django.db.models import QuerySet
+from strawberry_django.relay import DjangoCursorConnection
 
 from core import models
 
@@ -137,9 +140,75 @@ class Query:
 
         return [e async for e in qs.order_by(order_by)]
 
+    @strawberry_django.connection(DjangoCursorConnection[EventType])
+    def events_paginated(self) -> QuerySet[models.Event]:
+        return models.Event.objects.all().order_by("id")
+
+
+@strawberry.input
+class EventInput:
+    title: str
+    starts_at: datetime
+    organizer_id: int
+    venue_id: int
+
+
+@strawberry.input
+class ReservationInput:
+    event_id: int
+    participant_id: int
+    status: str | None = None
+
+
+@strawberry.type
+class Mutation:
+    @strawberry.mutation
+    async def create_event(self, input: EventInput) -> EventType:
+        title = input.title.strip()
+        if not title:
+            raise ValueError("Event title cannot be empty")
+
+        organizer = await models.Organizer.objects.filter(pk=input.organizer_id).afirst()
+        if organizer is None:
+            raise ValueError("Organizer not found")
+
+        venue = await models.Venue.objects.filter(pk=input.venue_id).afirst()
+        if venue is None:
+            raise ValueError("Venue not found")
+
+        return await models.Event.objects.acreate(
+            title=title,
+            starts_at=input.starts_at,
+            organizer=organizer,
+            venue=venue,
+        )
+
+    @strawberry.mutation
+    async def create_reservation(self, input: ReservationInput) -> ReservationType:
+        event = await models.Event.objects.filter(pk=input.event_id).afirst()
+        if event is None:
+            raise ValueError("Event not found")
+
+        participant = await models.Participant.objects.filter(
+            pk=input.participant_id
+        ).afirst()
+        if participant is None:
+            raise ValueError("Participant not found")
+
+        status = (input.status or models.Reservation.Status.PENDING).strip().lower()
+        if status not in models.Reservation.Status.values:
+            raise ValueError("Invalid reservation status")
+
+        return await models.Reservation.objects.acreate(
+            event=event,
+            participant=participant,
+            status=status,
+        )
+
 
 schema_optimized = strawberry.Schema(
     query=Query,
+    mutation=Mutation,
     extensions=[
         strawberry_django.optimizer.DjangoOptimizerExtension,
         lambda: QueryDepthLimiter(max_depth=5),
