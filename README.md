@@ -181,13 +181,13 @@ The validation has three layers:
 ### Setup
 
 ```bash
-pip install graphql-core requests anthropic python-dotenv
+pip install graphql-core requests python-dotenv
 ```
 
-Add your Anthropic API key to `.env` (never commit it). Use `>>` so the database lines stay:
+Add a free Gemini API key from Google AI Studio (aistudio.google.com) to `.env` (never commit it). The key is only needed for `--ask`. Use `>>` so the database lines stay:
 
 ```bash
-echo "ANTHROPIC_API_KEY=your_key_here" >> .env
+echo "GEMINI_API_KEY=your_key_here" >> .env
 ```
 
 Export the schema (needed for offline validation):
