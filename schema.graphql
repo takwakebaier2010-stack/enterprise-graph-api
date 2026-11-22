@@ -1,0 +1,134 @@
+"""Date with time (isoformat)"""
+scalar DateTime
+
+"""Decimal (fixed-point)"""
+scalar Decimal
+
+input EventInput {
+  title: String!
+  startsAt: DateTime!
+  organizerId: Int!
+  venueId: Int!
+}
+
+type EventType implements Node {
+  """The Globally Unique ID of this object"""
+  id: ID!
+  title: String!
+  startsAt: DateTime!
+  organizer: OrganizerType!
+  venue: VenueType!
+  reservations: [ReservationType!]!
+}
+
+"""A connection to a list of items."""
+type EventTypeCursorConnection {
+  """Pagination data for this connection"""
+  pageInfo: PageInfo!
+
+  """Contains the nodes in this connection"""
+  edges: [EventTypeCursorEdge!]!
+
+  """Total quantity of existing nodes."""
+  totalCount: Int!
+}
+
+"""An edge in a connection."""
+type EventTypeCursorEdge {
+  """A cursor for use in pagination"""
+  cursor: String!
+
+  """The item at the end of the edge"""
+  node: EventType!
+}
+
+type Mutation {
+  createEvent(input: EventInput!): EventType!
+  createReservation(input: ReservationInput!): ReservationType!
+}
+
+"""An object with a Globally Unique ID"""
+interface Node {
+  """The Globally Unique ID of this object"""
+  id: ID!
+}
+
+type OrganizerType {
+  id: ID!
+  name: String!
+  country: String!
+  events: [EventType!]!
+}
+
+"""Information to aid in pagination."""
+type PageInfo {
+  """When paginating forwards, are there more items?"""
+  hasNextPage: Boolean!
+
+  """When paginating backwards, are there more items?"""
+  hasPreviousPage: Boolean!
+
+  """When paginating backwards, the cursor to continue."""
+  startCursor: String
+
+  """When paginating forwards, the cursor to continue."""
+  endCursor: String
+}
+
+type ParticipantType {
+  id: ID!
+  fullName: String!
+  email: String!
+}
+
+type Query {
+  organizers: [OrganizerType!]!
+  participants: [ParticipantType!]!
+  venues: [VenueType!]!
+  reservations: [ReservationType!]!
+  tickets: [TicketType!]!
+  events(title: String = null, organizerId: Int = null, venueId: Int = null, orderBy: String! = "starts_at"): [EventType!]!
+  eventsPaginated(
+    """Returns the items in the list that come before the specified cursor."""
+    before: String = null
+
+    """Returns the items in the list that come after the specified cursor."""
+    after: String = null
+
+    """Returns the first n items from the list."""
+    first: Int = null
+
+    """Returns the items in the list that come after the specified cursor."""
+    last: Int = null
+  ): EventTypeCursorConnection!
+}
+
+input ReservationInput {
+  eventId: Int!
+  participantId: Int!
+  status: String = null
+}
+
+type ReservationType {
+  id: ID!
+  status: String!
+  createdAt: DateTime!
+  event: EventType!
+  participant: ParticipantType!
+  tickets: [TicketType!]!
+}
+
+type TicketType {
+  id: ID!
+  seat: String!
+  price: Decimal!
+  checkedIn: Boolean!
+  reservation: ReservationType!
+}
+
+type VenueType {
+  id: ID!
+  name: String!
+  city: String!
+  capacity: Int!
+}

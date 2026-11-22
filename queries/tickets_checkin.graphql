@@ -1,0 +1,11 @@
+query {
+  tickets {
+    seat
+    price
+    checkedIn
+    reservation {
+      status
+      participant { fullName email }
+    }
+  }
+}
