@@ -1,18 +1,57 @@
-# Events & Ticketing GraphQL API
+# API GraphQL – Gestion des événements et de la billetterie
 
-Group project: **Project 24 – Federated GraphQL API Architecture & DataLoader N+1 Optimization with Strawberry Django**
+## Projet 24 – Architecture d'API GraphQL fédérée et optimisation du problème N+1 avec DataLoader et Strawberry Django
 
-A GraphQL API built with Django, Strawberry and PostgreSQL for an events and ticketing domain. The project shows the N+1 query problem and how DataLoader fixes it.
+Une API GraphQL développée avec Django, Strawberry et PostgreSQL pour la gestion des événements et de la billetterie.
 
-## Domain model
+Ce projet vise à démontrer la création d'une API GraphQL avec des entités liées, à identifier le problème des requêtes N+1 et à optimiser les accès à la base de données grâce à DataLoader et aux mécanismes d'optimisation de l'ORM Django.
 
-```
+## Table des matières
+
+- [Présentation du projet](#présentation-du-projet)
+- [Modèle métier](#modèle-métier)
+- [Technologies utilisées](#technologies-utilisées)
+- [Fonctionnalités](#fonctionnalités)
+- [Structure du projet](#structure-du-projet)
+- [Prérequis](#prérequis)
+- [Installation et configuration](#installation-et-configuration)
+- [Lancement de l'application](#lancement-de-lapplication)
+- [Utilisation de l'API GraphQL](#utilisation-de-lapi-graphql)
+- [Optimisation du problème N+1](#optimisation-du-problème-n1)
+- [Tests automatisés et intégration continue](#tests-automatisés-et-intégration-continue)
+- [Assistant GraphQL basé sur l'IA](#assistant-graphql-basé-sur-lia)
+- [Équipe du projet](#équipe-du-projet)
+- [Captures d'écran et démonstration](#captures-décran-et-démonstration)
+
+## Présentation du projet
+
+L'application repose sur un domaine de gestion des événements et de la billetterie. Elle permet d'étudier les requêtes GraphQL imbriquées et d'analyser les performances des accès à la base de données.
+
+L'objectif principal est de comparer une implémentation GraphQL classique à une implémentation optimisée utilisant :
+
+- DataLoader pour regrouper les accès aux données liées.
+- Les mécanismes d'optimisation de l'ORM Django.
+- La limitation de la profondeur des requêtes.
+- La limitation du nombre d'alias.
+- La pagination par curseur Relay.
+
+Une requête imbriquée sur quatre niveaux permet d'illustrer le problème N+1 :
+
+`organizers → events → reservations → tickets`
+
+Le projet intègre également un assistant basé sur l'intelligence artificielle qui génère et valide des requêtes GraphQL à partir de questions formulées en langage naturel.
+
+## Modèle métier
+
+L'application repose sur six entités principales et leurs relations :
+
+```text
 Organizer ──< Event ──< Reservation ──< Ticket
-               │            │
-             Venue      Participant
+               │             │
+             Venue       Participant
 ```
 
-| Model | Main fields |
+| Modèle | Principaux attributs |
 |---|---|
 | Organizer | name, country |
 | Venue | name, city, capacity |
@@ -21,89 +60,193 @@ Organizer ──< Event ──< Reservation ──< Ticket
 | Reservation | event, participant, status, created_at |
 | Ticket | reservation, seat, price, checked_in |
 
-The deepest query follows four levels: `organizers → events → reservations → tickets`.
+## Technologies utilisées
 
-## Tech stack
+- **Langage :** Python 3.10+
+- **Backend :** Django
+- **API GraphQL :** Strawberry GraphQL
+- **Intégration Django :** strawberry-graphql-django
+- **Base de données :** PostgreSQL
+- **Optimisation :** DataLoader et ORM Django
+- **Pagination :** Relay Cursor Pagination
+- **Tests :** Pytest
+- **Intégration continue :** GitHub Actions
+- **Intelligence artificielle :** API Gemini
 
-- Python 3.10+
-- Django
-- Strawberry GraphQL + strawberry-graphql-django
-- PostgreSQL
+## Fonctionnalités
 
-## Prerequisites
+### API GraphQL
 
-- Python 3.10 or higher
-- PostgreSQL installed and running
-- Git
+- Deux endpoints : une API classique et une API optimisée.
+- Interface GraphiQL pour tester les requêtes.
+- Requêtes sur les organisateurs, événements, lieux, participants, réservations et billets.
+- Filtrage et tri des événements.
+- Mutations pour créer des événements et des réservations.
+- Pagination par curseur Relay pour les événements.
 
-## Installation
+### Optimisation des requêtes N+1
 
-1. Clone the repository
+- Illustration du problème N+1 à travers des requêtes imbriquées.
+- Utilisation de DataLoaders propres à chaque requête pour regrouper les accès aux données.
+- Optimisation des accès à la base de données avec l'ORM Django.
+- Comparaison entre les schémas classique et optimisé.
+- Mesure du nombre de requêtes SQL et du temps d'exécution.
+- Vérification de l'équivalence des résultats retournés par les deux implémentations.
 
-```bash
-git clone [REPOSITORY_URL]
-cd [REPOSITORY_FOLDER]
+### Sécurité
+
+- Profondeur maximale des requêtes : 5 niveaux.
+- Nombre maximal d'alias : 10.
+- Tests automatisés des limites de sécurité.
+
+### Génération des données de test
+
+Une commande permet de générer un jeu de données reproductible contenant :
+
+- 5 organisateurs.
+- 10 lieux.
+- 200 participants.
+- 50 événements.
+- 1 000 réservations.
+- Environ 2 000 billets.
+
+Le jeu de données est déterministe afin de faciliter les tests et les comparaisons entre les environnements.
+
+## Structure du projet
+
+```text
+enterprise-graph-api/
+│
+├── config/                         # Configuration Django et routes
+│
+├── core/
+│   ├── models.py                   # Les six modèles métier
+│   ├── schema.py                   # Schéma GraphQL classique
+│   ├── schema_optimized.py         # Schéma GraphQL optimisé
+│   ├── loaders.py                  # DataLoaders
+│   └── management/
+│       └── commands/
+│           └── seed_data.py        # Génération des données de test
+│
+├── tools/
+│   ├── ai_graphql_helper.py
+│   └── export_schema.py
+│
+├── queries/                        # Exemples de requêtes GraphQL
+├── tests/                          # Tests automatisés
+├── docs/
+│   └── screenshots/                # Captures d'écran
+│
+├── .github/
+│   └── workflows/
+│       └── tests.yml
+│
+├── manage.py
+├── Pipfile
+├── Pipfile.lock
+├── .env.example
+├── .gitignore
+└── README.md
 ```
 
-2. Create and activate a virtual environment
+*Cette structure présente les principaux composants du projet. Les noms et chemins doivent correspondre à ceux du dépôt réel.*
+
+## Prérequis
+
+- Python 3.10 ou supérieur.
+- PostgreSQL installé et en cours d'exécution.
+- Git.
+- Pipenv.
+
+## Installation et configuration
+
+### 1. Cloner le dépôt
 
 ```bash
-python -m venv venv
-# Windows
-venv\Scripts\activate
-# macOS / Linux
-source venv/bin/activate
+git clone https://github.com/takwakebaier2010-stack/enterprise-graph-api
+cd enterprise-graph-api
 ```
 
-3. Install the dependencies
+Remplacer `[URL_DU_DEPOT]` par l'adresse réelle du dépôt GitHub.
+
+### 2. Installer les dépendances
 
 ```bash
-pip install -r requirements.txt
+pip install pipenv
+pipenv install
+pipenv shell
 ```
 
-4. Create the PostgreSQL database
+### 3. Créer la base de données PostgreSQL
+
+Ouvrir PostgreSQL et exécuter :
 
 ```sql
 CREATE DATABASE enterprise_graph;
 ```
 
-5. Configure the environment
+Si la base existe déjà, cette étape peut être ignorée.
 
-Copy `.env.example` to `.env` and set your own PostgreSQL password:
+### 4. Configurer les variables d'environnement
 
-```
+Créer un fichier `.env` à la racine du projet en copiant le fichier `.env.example`.
+
+Configurer les informations de connexion :
+
+```env
 DB_NAME=enterprise_graph
 DB_USER=postgres
-DB_PASSWORD=your_password
+DB_PASSWORD=votre_mot_de_passe_postgresql
 DB_HOST=localhost
 DB_PORT=5432
 ```
 
-6. Apply the migrations
+Pour utiliser l'assistant IA, ajouter également la clé API Gemini :
+
+```env
+GEMINI_API_KEY=votre_cle_api_gemini
+```
+
+**Important :** le fichier `.env` contient des informations confidentielles. Il ne doit jamais être envoyé sur GitHub. Seul le fichier `.env.example` doit être partagé.
+
+### 5. Appliquer les migrations
 
 ```bash
 python manage.py migrate
 ```
 
-7. Load the test data
+### 6. Générer les données de test
 
 ```bash
 python manage.py seed_data
 ```
 
-This creates 5 organizers, 10 venues, 200 participants, 50 events, 1000 reservations and about 2000 tickets. The data is the same on every machine. Use `python manage.py seed_data --clear` to reset it.
+Pour supprimer et régénérer les données :
 
-8. Start the server
+```bash
+python manage.py seed_data --clear
+```
+
+### 7. Lancer le serveur
 
 ```bash
 python manage.py runserver
 ```
 
-## Usage
+## Lancement de l'application
 
-Open http://127.0.0.1:8000/graphql/ to use the GraphiQL interface.
+Une fois le serveur démarré, les deux endpoints sont accessibles :
 
-Example query:
+| Endpoint | Description |
+|---|---|
+| [http://127.0.0.1:8000/graphql/](http://127.0.0.1:8000/graphql/) | API GraphQL classique |
+| [http://127.0.0.1:8000/graphql-optimized/](http://127.0.0.1:8000/graphql-optimized/) | API GraphQL optimisée |
+
+Les deux endpoints disposent d'une interface GraphiQL permettant d'explorer le schéma et d'exécuter des requêtes.
+
+## Utilisation de l'API GraphQL
+
+### Exemple de requête : récupérer les organisateurs
 
 ```graphql
 {
@@ -115,131 +258,195 @@ Example query:
 }
 ```
 
-## Project structure
+### Exemple de requête imbriquée sur quatre niveaux
 
+```graphql
+{
+  organizers {
+    id
+    name
+    events {
+      id
+      title
+      reservations {
+        id
+        status
+        tickets {
+          id
+          seat
+          price
+        }
+      }
+    }
+  }
+}
 ```
-config/                  Django settings and URLs
-core/
-  models.py              The 6 models
-  schema.py              GraphQL schema (Strawberry)
-  management/commands/
-    seed_data.py         Test data generator
-manage.py
-requirements.txt
-.env.example
-```
 
-## Features
+Cette requête illustre les relations entre les organisateurs, les événements, les réservations et les billets. Elle permet notamment d'étudier le problème N+1.
 
-- [x] PostgreSQL database with six related event and ticketing models
-- [x] Reproducible test data generator
-- [x] Standard and optimized GraphQL endpoints with GraphiQL
-- [x] Event and reservation queries, event filters and ordering, and create mutations
-- [x] Relay cursor pagination for events on both schemas
-- [x] Request-scoped DataLoaders and Django ORM optimizer on the optimized schema
-- [x] Event and reservation create mutations on both schemas
-- [x] Query depth and alias limits on both schemas
-- [x] Pytest coverage for security limits and DataLoader SQL query counts
-- [x] GitHub Actions workflow for migrations and tests
-- [x] AI GraphQL helper (natural language to validated GraphQL queries)
+## Optimisation du problème N+1
 
-The application uses an events and ticketing domain to demonstrate nested GraphQL
-queries and N+1 optimization. The four-level query is
-`organizers → events → reservations → tickets`. The optimized schema exposes
-DataLoader-backed nested queries, event and reservation creation mutations, and
-Relay cursor pagination for events.
+Le projet compare le schéma GraphQL classique au schéma optimisé en exécutant les mêmes requêtes.
 
-## Team
+Les critères étudiés sont :
 
-| Member | Responsibility |
-|---|---|
-| [KEBAIER TAKWA ] | Backend Django & PostgreSQL |
-| [BEN HAMOUDA FATMA] | GraphQL & Strawberry |
-| [ALMIA NOUR] | DataLoader & optimization |
-| [FEKI AYA] | Security, tests & CI |
-| [HSSAN TASSNIM] | AI GraphQL helper, query validation, README and demo |
+- Le nombre de requêtes SQL exécutées.
+- Le temps d'exécution.
+- L'équivalence des données retournées.
 
-## Running the tests
+L'optimisation repose sur la combinaison de DataLoaders propres à chaque requête et des mécanismes d'optimisation de l'ORM Django.
 
-Run the automated security and SQL query-count tests with:
+### Résultats des benchmarks
+
+Voici quelques résultats obtenus lors des tests du projet :
+
+| Scénario | Schéma classique | Schéma optimisé |
+|---|---:|---:|
+| Requête imbriquée sur 4 niveaux | 1 061 requêtes | 4 requêtes |
+| Événements | 105 requêtes | 3 requêtes |
+| Réservations | 3 010 requêtes | 4 requêtes |
+
+Ces résultats correspondent au jeu de données et à l'exécution utilisés lors des mesures. Ils ne constituent pas des valeurs universelles pour toutes les tailles de données.
+
+Le script de benchmark permet de comparer le nombre de requêtes SQL, le temps d'exécution et les résultats des deux implémentations.
+
+## Tests automatisés et intégration continue
+
+Pour exécuter les tests automatisés :
 
 ```bash
 pipenv run pytest -v
 ```
 
-The tests verify:
-- Deep GraphQL queries and queries with more than 10 aliases are blocked.
-- A normal GraphQL query is accepted.
-- The four-level DataLoader query uses a constant four SQL queries as the dataset grows.
-- The naive schema exhibits the expected N+1 query count and both schemas return equivalent data.
+Les tests couvrent notamment :
 
-GitHub Actions automatically runs the tests on every push and pull request.
-## AI GraphQL helper
+- Le blocage des requêtes dépassant la profondeur maximale autorisée.
+- Le blocage des requêtes contenant plus de 10 alias.
+- L'acceptation des requêtes respectant les limites configurées.
+- Le nombre de requêtes SQL utilisées par DataLoader.
+- La comparaison des résultats entre les schémas classique et optimisé.
 
-A command-line assistant that turns a question in natural language into a GraphQL query and **validates it against the schema before it is used**. If the query is invalid, the errors are sent back to the model, which corrects itself (up to 3 attempts).
+Le workflow GitHub Actions exécute automatiquement les vérifications configurées lors des push et des Pull Requests.
 
-The validation has three layers:
+Il comprend notamment la configuration de la base de données, l'application des migrations et l'exécution des tests.
 
-1. **Syntax and schema**: every type, field and argument must exist in the schema (`graphql-core`).
-2. **Depth limit**: maximum depth of 5, the same as `QueryDepthLimiter` in `core/schema_optimized.py`.
-3. **Alias limit**: maximum 10 aliases, the same as `MaxAliasesLimiter`.
+## Assistant GraphQL basé sur l'IA
 
-### Setup
+Le projet intègre un assistant en ligne de commande qui transforme des questions formulées en langage naturel en requêtes GraphQL, puis les valide par rapport au schéma de l'API avant leur utilisation.
+
+Lorsqu'une requête est invalide, les erreurs de validation sont transmises au modèle afin qu'il puisse proposer une correction, avec un maximum de trois tentatives.
+
+### Les trois niveaux de validation
+
+1. **Validation syntaxique et structurelle :** vérifie l'existence des types, champs et arguments dans le schéma à l'aide de `graphql-core`.
+2. **Limitation de profondeur :** impose une profondeur maximale de 5 niveaux.
+3. **Limitation des alias :** impose un maximum de 10 alias.
+
+### Dépendances supplémentaires
+
+Installer les dépendances nécessaires si elles ne sont pas déjà présentes dans l'environnement :
 
 ```bash
-pip install graphql-core requests python-dotenv
+pipenv install graphql-core requests python-dotenv
 ```
 
-Add a free Gemini API key from Google AI Studio (aistudio.google.com) to `.env` (never commit it). The key is only needed for `--ask`. Use `>>` so the database lines stay:
+### Configuration de l'API Gemini
 
-```bash
-echo "GEMINI_API_KEY=your_key_here" >> .env
+Créer une clé API Gemini depuis [Google AI Studio](https://aistudio.google.com/).
+
+Ajouter la clé dans le fichier `.env` :
+
+```env
+GEMINI_API_KEY=votre_cle_api_gemini
 ```
 
-Export the schema (needed for offline validation):
+Cette clé est nécessaire uniquement pour la fonctionnalité de génération avec `--ask`.
+
+### Exportation du schéma GraphQL
 
 ```bash
 python tools/export_schema.py > schema.graphql
 ```
 
-### Usage
-
-Generate a validated query from a question:
+### Génération d'une requête validée
 
 ```bash
-python tools/ai_graphql_helper.py --schema-file schema.graphql --ask "List the 5 latest events with their venue name and organizer name"
+python tools/ai_graphql_helper.py --schema-file schema.graphql --ask "Lister les 5 événements les plus récents avec le nom de leur lieu et de leur organisateur"
 ```
 
-Generate and execute it on the running server (default: `http://localhost:8000/graphql-optimized/`):
+### Génération et exécution d'une requête
+
+Démarrer d'abord le serveur Django, puis exécuter :
 
 ```bash
-python tools/ai_graphql_helper.py --ask "Show each organizer with their events" --run
+python tools/ai_graphql_helper.py --ask "Afficher chaque organisateur avec ses événements" --run
 ```
 
-Validate saved queries (exit code 1 if one is invalid, so CI can use it):
+L'endpoint utilisé par défaut est :
+
+`http://localhost:8000/graphql-optimized/`
+
+### Validation des requêtes enregistrées
 
 ```bash
 python tools/ai_graphql_helper.py --schema-file schema.graphql --validate-dir queries
 ```
 
-Without `--schema-file`, the schema is loaded by live introspection. Set `GRAPHQL_URL` to use another endpoint, for example the naive one (`/graphql/`).
+Sans `--schema-file`, l'assistant peut récupérer le schéma directement depuis l'API grâce à l'introspection.
 
-### Example queries
+La variable `GRAPHQL_URL` permet de choisir un autre endpoint, par exemple :
 
-| File | Purpose | Expected |
+```env
+GRAPHQL_URL=http://localhost:8000/graphql/
+```
+
+La commande retourne un code de sortie non nul lorsqu'une requête est invalide.
+
+### Exemples de requêtes
+
+| Fichier | Objectif | Résultat attendu |
 |---|---|---|
-| `queries/events_deep.graphql` | 4-level nested query | valid |
-| `queries/events_filtered.graphql` | filters and ordering | valid |
-| `queries/tickets_checkin.graphql` | tickets with participant | valid |
-| `queries/bad_field.graphql` | non-existent fields (`date`, `location`) | rejected |
+| `queries/events_deep.graphql` | Requête imbriquée sur quatre niveaux | Valide |
+| `queries/events_filtered.graphql` | Filtrage et tri des événements | Valide |
+| `queries/tickets_checkin.graphql` | Billets et informations des participants | Valide |
+| `queries/bad_field.graphql` | Champs inexistants (`date`, `location`) | Rejetée |
 
-### Screenshots and demo
+### Limites de l'assistant IA
 
-Screenshots are in `docs/screenshots/`. Demo video: [add the link here]
+- La validation vérifie la structure de la requête, mais pas l'ensemble des règles métier.
+- Par exemple, `orderBy` est un argument de type chaîne de caractères, mais le resolver accepte uniquement `starts_at`, `-starts_at`, `title` et `-title`.
+- Une requête structurellement valide n'est pas nécessairement pertinente par rapport à la question posée.
+- Le modèle ne peut pas récupérer des données qui ne sont pas exposées par le schéma GraphQL.
+- La clé API Gemini doit rester confidentielle dans le fichier `.env`.
 
-### Limits
+## Équipe du projet
 
-- The validation checks the **structure** of a query, not business rules. For example, `orderBy` is a plain `String` in the schema, but the resolver only accepts `starts_at`, `-starts_at`, `title` and `-title`. These values are given to the model in the prompt, and `--run` shows runtime errors.
-- A valid query is not always a relevant one: check the result against your question.
-- The model cannot produce data that the schema does not expose (for example, computed counts).
-- The API key must stay in `.env`, which is ignored by Git.
+| Membre | Responsabilité |
+|---|---|
+| KEBAIER TAKWA | Backend Django et PostgreSQL |
+| BEN HAMOUDA FATMA | GraphQL et Strawberry |
+| ALMIA NOUR | DataLoader et optimisation |
+| FEKI AYA | Sécurité, tests et intégration continue |
+| HSSAN TASSNIM | Assistant GraphQL basé sur l'IA, validation des requêtes, README et démonstration |
+
+## Captures d'écran et démonstration
+
+Les captures d'écran illustrant l'application et ses principales fonctionnalités sont disponibles dans :
+
+`docs/screenshots/`
+
+Elles peuvent notamment présenter :
+
+- Les interfaces GraphiQL classique et optimisée.
+- Les requêtes GraphQL imbriquées.
+- Le filtrage et la pagination des événements.
+- L'optimisation avec DataLoader.
+- Les résultats des benchmarks.
+- L'exécution de l'assistant GraphQL basé sur l'IA.
+
+
+## Conclusion
+
+Ce projet met en pratique la conception d'une API GraphQL avec Django et Strawberry, en mettant l'accent sur l'optimisation des accès aux données, la résolution du problème N+1, la pagination, la sécurité, les tests automatisés et la génération de requêtes assistée par l'intelligence artificielle.
+
+Il rassemble des notions de développement backend, de gestion de bases de données, d'architecture GraphQL, d'analyse des performances et d'intégration continue dans une application concrète de gestion des événements et de la billetterie.
