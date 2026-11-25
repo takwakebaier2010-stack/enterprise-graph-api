@@ -7,3 +7,4 @@ venv/
 .env
 __pycache__/
 *.mp4
+!docs/videos/Demo_project_small.mp4
