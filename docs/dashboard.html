@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Dashboard · API GraphQL Événements & Billetterie</title>
+<style>
+:root{--b:#1E5EFF;--n:#0B2A6F;--s:#0EA5E9;--l:#F2F7FF;--bd:#D6E4FF;--t:#1B2A4A;--ok:#12906A;--ko:#D6336C;--mut:#5B6F9E}
+*{box-sizing:border-box;margin:0}
+body{font:15px/1.5 "Segoe UI",Inter,Arial,sans-serif;color:var(--t);background:#F7FAFF;display:flex;min-height:100vh}
+aside{width:240px;background:var(--n);color:#fff;padding:22px 14px;position:sticky;top:0;height:100vh;display:flex;flex-direction:column;gap:6px;flex:none}
+aside h1{font-size:17px;line-height:1.25;padding:0 10px 14px}aside h1 small{display:block;font-weight:400;opacity:.7;font-size:12px;margin-top:4px}
+aside button{all:unset;cursor:pointer;padding:10px 14px;border-radius:10px;font-size:14.5px;opacity:.8}
+aside button:hover{background:rgba(255,255,255,.1);opacity:1}aside button.on{background:var(--b);opacity:1;font-weight:600}
+#st{margin-top:auto;font-size:12.5px;padding:10px;background:rgba(255,255,255,.08);border-radius:10px}
+#st i{display:inline-block;width:9px;height:9px;border-radius:50%;background:#999;margin-right:6px}#st.up i{background:#3DDC97}#st.down i{background:#FF6B8B}
+main{flex:1;padding:28px 34px;min-width:0;max-width:1400px}
+h2{font-size:26px;color:var(--n);margin-bottom:4px}.sub{color:var(--mut);margin-bottom:20px}
+h3{font-size:16px;color:var(--n);margin-bottom:10px}
+.card{background:#fff;border:1px solid var(--bd);border-radius:14px;padding:18px 20px;box-shadow:0 6px 18px rgba(30,94,255,.06);margin-bottom:16px}
+.grid{display:grid;gap:14px}.g6{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}.g2{grid-template-columns:repeat(auto-fit,minmax(380px,1fr))}
+.kpi{background:#fff;border:1px solid var(--bd);border-radius:14px;padding:16px}.kpi b{display:block;font-size:30px;color:var(--b)}.kpi span{color:var(--mut);font-size:13.5px}
+label{display:block;font-size:12.5px;font-weight:600;color:var(--mut);margin-bottom:3px}
+input,select,textarea{font:inherit;padding:8px 10px;border:1px solid var(--bd);border-radius:9px;background:#fff;color:var(--t);width:100%}
+input:focus,select:focus,textarea:focus{outline:2px solid #BBD0FF}
+.bar{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;margin-bottom:14px}.bar>div{flex:1;min-width:140px}.bar .fix{flex:none;min-width:0}
+button.p,button.s{font:inherit;font-weight:600;border:0;border-radius:9px;padding:9px 18px;cursor:pointer}
+button.p{background:var(--b);color:#fff}button.p:hover{background:var(--n)}button.s{background:#E4EEFF;color:var(--b)}button.s:hover{background:#D3E2FF}button:disabled{opacity:.45;cursor:default}
+table{width:100%;border-collapse:collapse;font-size:14px}th{text-align:left;background:var(--n);color:#fff;padding:9px 12px;font-weight:600}th:first-child{border-radius:9px 0 0 9px}th:last-child{border-radius:0 9px 9px 0}
+td{padding:8px 12px;border-bottom:1px solid #E6EEFF}tr:hover td{background:var(--l)}
+.meta{color:var(--mut);font-size:13px;margin:8px 0}.pill{display:inline-block;padding:2px 10px;border-radius:20px;font-size:12.5px;font-weight:600}
+.pill.ok{background:#DDF6EC;color:var(--ok)}.pill.ko{background:#FDE3EC;color:var(--ko)}.pill.in{background:#E4EEFF;color:var(--b)}.pill.wa{background:#FFF1D6;color:#9A6200}
+pre{background:#0B1F4D;color:#E6EEFF;border-radius:10px;padding:14px;overflow:auto;font:13px/1.5 Consolas,"Courier New",monospace;max-height:420px;white-space:pre-wrap;word-break:break-word}
+textarea{font:13.5px/1.5 Consolas,"Courier New",monospace;min-height:230px;resize:vertical}
+details{margin-top:10px}summary{cursor:pointer;color:var(--b);font-size:13.5px;font-weight:600}
+.seg{display:inline-flex;background:#E4EEFF;border-radius:10px;padding:3px;margin-bottom:14px}.seg button{all:unset;cursor:pointer;padding:7px 16px;border-radius:8px;font-weight:600;color:var(--b);font-size:14px}.seg button.on{background:var(--b);color:#fff}
+.bars .r{display:grid;grid-template-columns:200px 1fr 90px;gap:12px;align-items:center;margin:8px 0}.bars .t{height:22px;border-radius:11px;background:linear-gradient(90deg,#9DB8F5,#5B8DF7);width:2%;transition:width 1s}.bars .t.o{background:linear-gradient(90deg,var(--n),var(--b))}
+.msg{padding:10px 14px;border-radius:10px;margin-top:12px;font-size:14px}.msg.ok{background:#DDF6EC;color:#0B6B4D}.msg.ko{background:#FDE3EC;color:#9D1B4A}
+.test{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid #E6EEFF}.test:last-child{border:0}.test small{color:var(--mut);display:block}
+.tt{margin-top:6px;font-size:13px}
+@media(max-width:820px){body{flex-direction:column}aside{width:100%;height:auto;position:static;flex-direction:row;flex-wrap:wrap}#st{margin:0}main{padding:18px}}
+</style></head><body>
+<aside>
+ <h1>API GraphQL<small>Événements & Billetterie · Projet 24</small></h1>
+ <button data-t="overview" class="on">📊 Vue d'ensemble</button>
+ <button data-t="events">🎫 Événements</button>
+ <button data-t="create">➕ Création</button>
+ <button data-t="n1">⚡ Test N+1</button>
+ <button data-t="sec">🛡️ Sécurité</button>
+ <button data-t="editor">⌨️ Éditeur libre</button>
+ <div id="st"><i></i><span>Connexion…</span></div>
+</aside>
+<main>
+
+<section id="overview">
+ <h2>Vue d'ensemble</h2><p class="sub">Contenu actuel de la base, lu via l'endpoint optimisé.</p>
+ <div class="grid g6" id="kpis"></div>
+ <div class="grid g2" style="margin-top:14px">
+  <div class="card"><h3>Réservations par statut</h3><div id="resBars" class="bars"></div></div>
+  <div class="card"><h3>Billets</h3><div id="tkBars" class="bars"></div></div>
+ </div>
+ <div class="bar"><button class="s" id="reload">↻ Actualiser</button></div>
+</section>
+
+<section id="events" hidden>
+ <h2>Événements</h2><p class="sub">Recherche, filtres, tri et pagination Relay par curseur.</p>
+ <div class="seg"><button id="m1" class="on">Liste filtrée</button><button id="m2">Pagination Relay</button></div>
+ <div id="evList">
+  <div class="card">
+   <div class="bar">
+    <div><label>Titre contient</label><input id="fTitle" placeholder="ex. Jazz"></div>
+    <div><label>Organisateur</label><select id="fOrg"></select></div>
+    <div><label>Lieu</label><select id="fVen"></select></div>
+    <div><label>Tri</label><select id="fOrd"><option value="starts_at">Date ↑</option><option value="-starts_at">Date ↓</option><option value="title">Titre A→Z</option><option value="-title">Titre Z→A</option></select></div>
+    <div><label>Endpoint</label><select id="fEp"><option value="optimized">Optimisé (DataLoader)</option><option value="classic">Classique</option></select></div>
+    <div class="fix"><button class="p" id="fGo">Rechercher</button></div>
+   </div>
+   <div class="meta" id="fMeta"></div><div id="fTab"></div>
+   <details><summary>Voir la requête GraphQL envoyée</summary><pre id="fQ"></pre></details>
+  </div>
+ </div>
+ <div id="evPag" hidden>
+  <div class="card">
+   <div class="bar">
+    <div class="fix"><label>Éléments par page (first)</label><select id="pSize"><option>5</option><option selected>10</option><option>20</option></select></div>
+    <div class="fix"><button class="s" id="pPrev">← Précédent</button></div>
+    <div class="fix"><button class="p" id="pNext">Suivant →</button></div>
+    <div class="fix"><button class="s" id="pFirst">⟲ Première page</button></div>
+   </div>
+   <div class="meta" id="pMeta"></div><div id="pTab"></div>
+   <details><summary>Voir la requête GraphQL envoyée</summary><pre id="pQ"></pre></details>
+  </div>
+ </div>
+</section>
+
+<section id="create" hidden>
+ <h2>Création de données</h2><p class="sub">Mutations <b>createEvent</b> et <b>createReservation</b> (endpoint classique).</p>
+ <div class="grid g2">
+  <div class="card"><h3>Nouvel événement</h3>
+   <div class="bar"><div><label>Titre</label><input id="cTitle" placeholder="Tech Conference"></div></div>
+   <div class="bar"><div><label>Date de début</label><input id="cDate" type="datetime-local"></div></div>
+   <div class="bar"><div><label>Organisateur</label><select id="cOrg"></select></div><div><label>Lieu</label><select id="cVen"></select></div></div>
+   <button class="p" id="cEv">Créer l'événement</button><div id="cEvR"></div>
+   <details><summary>Voir la mutation</summary><pre>mutation($i: EventInput!) {
+  createEvent(input: $i) { id title startsAt }
+}</pre></details>
+  </div>
+  <div class="card"><h3>Nouvelle réservation</h3>
+   <div class="bar"><div><label>Événement</label><select id="rEv"></select></div></div>
+   <div class="bar"><div><label>Participant</label><select id="rPa"></select></div></div>
+   <div class="bar"><div><label>Statut</label><select id="rSt"><option value="">pending (par défaut)</option><option>pending</option><option>confirmed</option><option>cancelled</option><option value="invalide">invalide (test d'erreur)</option></select></div></div>
+   <button class="p" id="cRes">Créer la réservation</button><div id="cResR"></div>
+   <details><summary>Voir la mutation</summary><pre>mutation($i: ReservationInput!) {
+  createReservation(input: $i) { id status }
+}</pre></details>
+  </div>
+ </div>
+ <p class="meta">Astuce : laissez le titre vide pour voir le message de validation « Event title cannot be empty ».</p>
+</section>
+
+<section id="n1" hidden>
+ <h2>Test du problème N+1</h2><p class="sub">La même requête est envoyée à l'API classique puis à l'API optimisée (DataLoader).</p>
+ <div class="card">
+  <div class="bar"><div><label>Scénario</label><select id="nSc"></select></div><div class="fix"><button class="p" id="nGo">▶ Lancer la comparaison</button></div></div>
+  <pre id="nQ"></pre>
+  <div class="bars" id="nRes" style="margin-top:16px"></div>
+  <div id="nSum"></div>
+ </div>
+</section>
+
+<section id="sec" hidden>
+ <h2>Sécurité</h2><p class="sub">Limites de profondeur (max 5), d'alias (max 10) et validation. Chaque test est envoyé à l'endpoint choisi.</p>
+ <div class="card">
+  <div class="bar"><div class="fix"><label>Endpoint</label><select id="sEp"><option value="optimized">Optimisé</option><option value="classic">Classique</option></select></div><div class="fix"><button class="p" id="sAll">Lancer tous les tests</button></div></div>
+  <div id="sList"></div>
+ </div>
+</section>
+
+<section id="editor" hidden>
+ <h2>Éditeur libre</h2><p class="sub">Écrivez n'importe quelle requête ou mutation (Ctrl+Entrée pour exécuter).</p>
+ <div class="card">
+  <div class="bar"><div class="fix"><label>Exemples</label><select id="eEx"></select></div><div class="fix"><label>Endpoint</label><select id="eEp"><option value="classic">Classique</option><option value="optimized">Optimisé</option></select></div><div class="fix"><button class="p" id="eGo">▶ Exécuter</button></div></div>
+  <div class="grid g2"><div><label>Requête</label><textarea id="eQ" spellcheck="false"></textarea></div><div><label>Variables (JSON, optionnel)</label><textarea id="eV" spellcheck="false" style="min-height:230px"></textarea></div></div>
+  <div class="meta" id="eMeta"></div><pre id="eOut">Le résultat s'affichera ici.</pre>
+ </div>
+</section>
+
+</main>
+<script>
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const pk=id=>{try{const d=atob(id);return d.includes(":")?d.split(":").pop():id}catch{return id}};
+const fmtD=d=>d?new Date(d).toLocaleString("fr-FR",{dateStyle:"medium",timeStyle:"short"}):"";
+const ms=n=>n>=1000?(n/1000).toFixed(2)+" s":Math.round(n)+" ms";
+async function gql(query,variables,ep="classic"){
+  const t=performance.now();
+  try{
+    const r=await fetch("/api/"+ep,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({query,variables:variables||undefined})});
+    const txt=await r.text();let json;try{json=JSON.parse(txt)}catch{json={errors:[{message:"Réponse invalide : "+txt.slice(0,200)}]}}
+    return{json,ms:performance.now()-t,status:r.status,size:txt.length};
+  }catch(e){return{json:{errors:[{message:"Dashboard injoignable : lancez serve_dashboard.py"}]},ms:0,status:0,size:0}}
+}
+const errs=r=>(r.json.errors||[]).map(e=>e.message).join(" · ");
+const setStatus=async()=>{const r=await gql("{__typename}",null,"classic"),ok=!!(r.json.data);const s=$("#st");s.className=ok?"up":"down";s.querySelector("span").textContent=ok?"Django connecté":"Django injoignable"}
+// ---------- navigation
+$$("aside button").forEach(b=>b.onclick=()=>{$$("aside button").forEach(x=>x.classList.toggle("on",x===b));$$("main section").forEach(s=>s.hidden=s.id!==b.dataset.t);if(b.dataset.t==="overview")loadOverview();if(b.dataset.t==="events"&&!$("#fTab").innerHTML)runList()});
+// ---------- lookups (organisateurs, lieux, participants, événements)
+let LK={};
+async function loadLookups(){
+  const r=await gql("{ organizers{id name} venues{id name city} participants{id fullName email} events(orderBy:\"-starts_at\"){id title} }",null,"optimized");
+  if(!r.json.data){return}
+  LK=r.json.data;
+  const opt=(a,f,all)=>(all?`<option value="">${all}</option>`:"")+a.map(x=>`<option value="${pk(x.id)}">${esc(f(x))}</option>`).join("");
+  $("#fOrg").innerHTML=opt(LK.organizers,x=>x.name,"Tous");$("#fVen").innerHTML=opt(LK.venues,x=>`${x.name} (${x.city})`,"Tous");
+  $("#cOrg").innerHTML=opt(LK.organizers,x=>x.name);$("#cVen").innerHTML=opt(LK.venues,x=>`${x.name} (${x.city})`);
+  $("#rEv").innerHTML=opt(LK.events,x=>`#${pk(x.id)} · ${x.title}`);$("#rPa").innerHTML=opt(LK.participants,x=>`${x.fullName} (${x.email})`);
+}
+// ---------- vue d'ensemble
+async function loadOverview(){
+  const r=await gql("{ organizers{id} venues{id} participants{id} events{id} reservations{id status} tickets{id checkedIn} }",null,"optimized");
+  if(!r.json.data){$("#kpis").innerHTML=`<div class="msg ko">${esc(errs(r))}</div>`;return}
+  const d=r.json.data,k=[["Organisateurs",d.organizers.length],["Lieux",d.venues.length],["Participants",d.participants.length],["Événements",d.events.length],["Réservations",d.reservations.length],["Billets",d.tickets.length]];
+  $("#kpis").innerHTML=k.map(x=>`<div class="kpi"><b>${x[1]}</b><span>${x[0]}</span></div>`).join("");
+  const cnt={};d.reservations.forEach(x=>cnt[x.status]=(cnt[x.status]||0)+1);
+  const bar=(rows,tot)=>rows.map(([n,v,c])=>`<div class="r"><span>${esc(n)}</span><div><div class="t ${c||""}" style="width:${tot?Math.max(2,v/tot*100):2}%"></div></div><b>${v}</b></div>`).join("");
+  $("#resBars").innerHTML=bar(Object.entries(cnt).map(([n,v])=>[n,v]),d.reservations.length);
+  const ci=d.tickets.filter(t=>t.checkedIn).length;
+  $("#tkBars").innerHTML=bar([["Validés (check-in)",ci,"o"],["Non validés",d.tickets.length-ci]],d.tickets.length);
+}
+$("#reload").onclick=()=>{loadOverview();loadLookups()};
+// ---------- événements : liste filtrée
+async function runList(){
+  const v={},a=[];
+  const t=$("#fTitle").value.trim(),o=$("#fOrg").value,vn=$("#fVen").value,ord=$("#fOrd").value,ep=$("#fEp").value;
+  let args=`orderBy:"${ord}"`;if(t)args+=`, title:${JSON.stringify(t)}`;if(o)args+=`, organizerId:${+o}`;if(vn)args+=`, venueId:${+vn}`;
+  const q=`{\n  events(${args}) {\n    id\n    title\n    startsAt\n    organizer { name }\n    venue { name city }\n  }\n}`;
+  $("#fQ").textContent=q;$("#fMeta").textContent="Chargement…";
+  const r=await gql(q,null,ep);
+  if(!r.json.data){$("#fMeta").innerHTML=`<span class="pill ko">Erreur</span> ${esc(errs(r))}`;$("#fTab").innerHTML="";return}
+  const e=r.json.data.events;
+  $("#fMeta").innerHTML=`<span class="pill in">${e.length} résultat(s)</span> <span class="pill ${ep==="optimized"?"ok":"wa"}">${ep==="optimized"?"optimisé":"classique"}</span> ${ms(r.ms)}`;
+  $("#fTab").innerHTML=evTable(e);
+}
+const evTable=e=>e.length?`<table><tr><th>ID</th><th>Titre</th><th>Date</th><th>Organisateur</th><th>Lieu</th></tr>${e.map(x=>`<tr><td>${pk(x.id)}</td><td>${esc(x.title)}</td><td>${fmtD(x.startsAt)}</td><td>${esc(x.organizer.name)}</td><td>${esc(x.venue.name)}${x.venue.city?" · "+esc(x.venue.city):""}</td></tr>`).join("")}</table>`:"<p class='meta'>Aucun événement.</p>";
+$("#fGo").onclick=runList;$("#fTitle").onkeydown=e=>e.key==="Enter"&&runList();["fOrg","fVen","fOrd","fEp"].forEach(i=>$("#"+i).onchange=runList);
+// ---------- événements : pagination Relay
+let PG={};
+async function runPage(dir){
+  const n=+$("#pSize").value;let args=`first: ${n}`;
+  if(dir==="next"&&PG.end)args=`first: ${n}, after: "${PG.end}"`;
+  if(dir==="prev"&&PG.start)args=`last: ${n}, before: "${PG.start}"`;
+  const q=`{\n  eventsPaginated(${args}) {\n    totalCount\n    edges {\n      cursor\n      node { id title startsAt organizer { name } venue { name city } }\n    }\n    pageInfo { hasNextPage hasPreviousPage startCursor endCursor }\n  }\n}`;
+  $("#pQ").textContent=q;$("#pMeta").textContent="Chargement…";
+  const r=await gql(q,null,"classic");
+  if(!r.json.data){$("#pMeta").innerHTML=`<span class="pill ko">Erreur</span> ${esc(errs(r))}`;return}
+  const c=r.json.data.eventsPaginated,pi=c.pageInfo;PG={start:pi.startCursor,end:pi.endCursor};
+  $("#pNext").disabled=!pi.hasNextPage;$("#pPrev").disabled=!pi.hasPreviousPage;
+  $("#pMeta").innerHTML=`<span class="pill in">${c.edges.length} sur ${c.totalCount}</span> hasNextPage : <b>${pi.hasNextPage}</b> · endCursor : <code>${esc(pi.endCursor)}</code> · ${ms(r.ms)}`;
+  $("#pTab").innerHTML=evTable(c.edges.map(x=>x.node));
+}
+$("#pNext").onclick=()=>runPage("next");$("#pPrev").onclick=()=>runPage("prev");$("#pFirst").onclick=()=>{PG={};runPage()};$("#pSize").onchange=()=>{PG={};runPage()};
+$("#m1").onclick=()=>{$("#m1").classList.add("on");$("#m2").classList.remove("on");$("#evList").hidden=false;$("#evPag").hidden=true};
+$("#m2").onclick=()=>{$("#m2").classList.add("on");$("#m1").classList.remove("on");$("#evList").hidden=true;$("#evPag").hidden=false;if(!$("#pTab").innerHTML)runPage()};
+// ---------- création
+const show=(el,r,okTxt)=>{const e=r.json.errors;$(el).innerHTML=e?`<div class="msg ko">❌ ${esc(errs(r))}</div>`:`<div class="msg ok">✅ ${okTxt}</div>`};
+$("#cEv").onclick=async()=>{
+  const d=$("#cDate").value;
+  const i={title:$("#cTitle").value,startsAt:d?new Date(d).toISOString():"",organizerId:+$("#cOrg").value,venueId:+$("#cVen").value};
+  if(!d){$("#cEvR").innerHTML=`<div class="msg ko">❌ Choisissez une date.</div>`;return}
+  const r=await gql("mutation($i: EventInput!){ createEvent(input:$i){ id title startsAt } }",{i},"classic");
+  show("#cEvR",r,r.json.data?`Événement créé : <b>${esc(r.json.data.createEvent.title)}</b> (id ${pk(r.json.data.createEvent.id)})`:"");
+  if(r.json.data){$("#cTitle").value="";loadLookups()}
+};
+$("#cRes").onclick=async()=>{
+  const i={eventId:+$("#rEv").value,participantId:+$("#rPa").value};const s=$("#rSt").value;if(s)i.status=s;
+  const r=await gql("mutation($i: ReservationInput!){ createReservation(input:$i){ id status } }",{i},"classic");
+  show("#cResR",r,r.json.data?`Réservation créée : n°${r.json.data.createReservation.id}, statut <b>${esc(r.json.data.createReservation.status)}</b>`:"");
+};
+// ---------- N+1
+const SC={
+ nested4:{n:"nested4 · organisateurs → tickets",ref:[1056,4],q:"{\n  organizers {\n    id name\n    events {\n      id title\n      reservations {\n        id status\n        tickets { id seat }\n      }\n    }\n  }\n}"},
+ events:{n:"events · organizer, venue",ref:[101,3],q:"{\n  events {\n    id title\n    organizer { name }\n    venue { name }\n  }\n}"},
+ reservations:{n:"reservations · event, participant, tickets",ref:[3001,4],q:"{\n  reservations {\n    id status\n    event { title }\n    participant { fullName }\n    tickets { id }\n  }\n}"},
+ tickets:{n:"tickets · reservation, event",ref:[4037,3],q:"{\n  tickets {\n    id seat\n    reservation { id event { title } }\n  }\n}"}};
+$("#nSc").innerHTML=Object.entries(SC).map(([k,v])=>`<option value="${k}">${v.n}</option>`).join("");
+const showSc=()=>$("#nQ").textContent=SC[$("#nSc").value].q;$("#nSc").onchange=showSc;showSc();
+$("#nGo").onclick=async()=>{
+  const sc=SC[$("#nSc").value];$("#nGo").disabled=true;$("#nRes").innerHTML="";$("#nSum").innerHTML="<p class='meta'>Exécution sur l'API classique (peut prendre quelques secondes)…</p>";
+  const a=await gql(sc.q,null,"classic");
+  $("#nSum").innerHTML="<p class='meta'>Exécution sur l'API optimisée…</p>";
+  const b=await gql(sc.q,null,"optimized");$("#nGo").disabled=false;
+  if(!a.json.data||!b.json.data){$("#nSum").innerHTML=`<div class="msg ko">${esc(errs(a.json.data?b:a))}</div>`;return}
+  const mx=Math.max(a.ms,b.ms);
+  $("#nRes").innerHTML=[["Classique (N+1)",a,"",sc.ref[0]],["Optimisé (DataLoader)",b,"o",sc.ref[1]]].map(([n,r,c,s])=>`<div class="r"><span>${n}</span><div><div class="t ${c}" data-w="${Math.max(2,r.ms/mx*100)}"></div></div><b>${ms(r.ms)}</b></div>`).join("");
+  setTimeout(()=>$$("#nRes .t").forEach(t=>t.style.width=t.dataset.w+"%"),30);
+  const same=JSON.stringify(a.json.data)===JSON.stringify(b.json.data);
+  $("#nSum").innerHTML=`<div class="grid g6" style="margin-top:8px"><div class="kpi"><b>${sc.ref[0]} → ${sc.ref[1]}</b><span>requêtes SQL (mesure du projet, benchmark_results.txt)</span></div><div class="kpi"><b>${a.ms>0?(a.ms/b.ms).toFixed(1)+"×":"—"}</b><span>plus rapide ici (temps de réponse)</span></div><div class="kpi"><b>${same?"Oui":"Non"}</b><span>résultats identiques</span></div></div><p class="meta">Le temps dépend de votre machine ; le nombre de requêtes SQL est celui mesuré par les tests du projet.</p>`;
+};
+// ---------- sécurité
+const alias=Array.from({length:12},(_,i)=>`a${i+1}: venues { id }`).join("\n  ");
+const TESTS=[
+ {n:"Requête valide, profondeur 5",d:"Doit être acceptée (limite = 5).",q:"{ organizers { events { reservations { tickets { id } } } } }",exp:"ok"},
+ {n:"Profondeur 7 (trop imbriquée)",d:"QueryDepthLimiter doit refuser.",q:"{ organizers { events { reservations { tickets { reservation { event { title } } } } } } }",exp:"ko"},
+ {n:"12 alias (limite = 10)",d:"MaxAliasesLimiter doit refuser.",q:`{\n  ${alias}\n}`,exp:"ko"},
+ {n:"Champ inexistant",d:"La validation du schéma doit refuser.",q:"{ events { motDePasse } }",exp:"ko"},
+ {n:"Tri non autorisé",d:"Seuls title, -title, starts_at, -starts_at sont acceptés.",q:'{ events(orderBy: "password") { id } }',exp:"ko"}];
+$("#sList").innerHTML=TESTS.map((t,i)=>`<div class="test"><div><b>${t.n}</b><small>${t.d}</small><pre style="margin-top:8px;max-height:110px">${esc(t.q)}</pre><div class="tt" id="sr${i}"></div></div><button class="s" data-i="${i}">Tester</button></div>`).join("");
+async function runSec(i){
+  const t=TESTS[i],r=await gql(t.q,null,$("#sEp").value),refused=!!r.json.errors;
+  const good=(t.exp==="ko")===refused;
+  $("#sr"+i).innerHTML=`<span class="pill ${good?"ok":"ko"}">${refused?"Refusée":"Acceptée"}${good?" ✓ attendu":" ✗ inattendu"}</span> ${refused?esc(errs(r)):ms(r.ms)}`;
+}
+$$("#sList button").forEach(b=>b.onclick=()=>runSec(+b.dataset.i));
+$("#sAll").onclick=async()=>{for(let i=0;i<TESTS.length;i++)await runSec(i)};
+// ---------- éditeur
+const EX={
+ "Événements filtrés":["{\n  events(title: \"Jazz\", orderBy: \"-starts_at\") {\n    id\n    title\n    startsAt\n    organizer { name }\n    venue { name }\n  }\n}",""],
+ "Requête imbriquée (4 niveaux)":[SC.nested4.q,""],
+ "Pagination Relay":["{\n  eventsPaginated(first: 5) {\n    totalCount\n    edges { cursor node { id title } }\n    pageInfo { hasNextPage endCursor }\n  }\n}",""],
+ "Mutation createEvent":["mutation($i: EventInput!) {\n  createEvent(input: $i) { id title }\n}",'{\n  "i": {\n    "title": "Tech Conference",\n    "startsAt": "2026-12-01T18:00:00Z",\n    "organizerId": 1,\n    "venueId": 1\n  }\n}'],
+ "Champ inexistant (erreur)":["{ events { motDePasse } }",""]};
+$("#eEx").innerHTML=Object.keys(EX).map(k=>`<option>${esc(k)}</option>`).join("");
+const loadEx=()=>{const [q,v]=EX[$("#eEx").value];$("#eQ").value=q;$("#eV").value=v};$("#eEx").onchange=loadEx;loadEx();
+async function runEd(){
+  let v=null;const vt=$("#eV").value.trim();if(vt){try{v=JSON.parse(vt)}catch(e){$("#eOut").textContent="Variables : JSON invalide ("+e.message+")";return}}
+  $("#eOut").textContent="Exécution…";const r=await gql($("#eQ").value,v,$("#eEp").value);
+  $("#eMeta").innerHTML=`<span class="pill ${r.json.errors?"ko":"ok"}">${r.json.errors?"avec erreurs":"succès"}</span> HTTP ${r.status} · ${ms(r.ms)} · ${(r.size/1024).toFixed(1)} Ko`;
+  $("#eOut").textContent=JSON.stringify(r.json,null,2);
+}
+$("#eGo").onclick=runEd;$("#eQ").onkeydown=e=>{if(e.ctrlKey&&e.key==="Enter")runEd()};
+// ---------- init
+(async()=>{await setStatus();await loadOverview();await loadLookups();setInterval(setStatus,15000)})();
+</script></body></html>
